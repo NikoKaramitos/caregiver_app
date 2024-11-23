@@ -15,19 +15,6 @@ $password = password_hash($data['password'], PASSWORD_BCRYPT); // Hash the passw
 $hoursAvailable = intval($data['hoursAvailable']);
 $maxTime = intval($data['maxTime']);
 
-// Generate memberID
-$memberIDQuery = "SELECT MAX(memberID) AS maxID FROM members";
-$memberIDResult = mysqli_query($conn, $memberIDQuery);
-
-if ($memberIDResult) {
-    $row = mysqli_fetch_assoc($memberIDResult);
-    $memberID = $row['maxID'] !== null ? $row['maxID'] + 1 : 0; // Increment maxID or start at 0
-} else {
-    echo json_encode(["message" => "Error calculating memberID: " . mysqli_error($conn)]);
-    mysqli_close($conn);
-    exit();
-}
-
 // Check if phone already exists
 $checkQuery = "SELECT phone FROM members WHERE phone = '$phone'";
 $checkResult = mysqli_query($conn, $checkQuery);
@@ -40,8 +27,8 @@ if (mysqli_num_rows($checkResult) > 0) {
 }
 
 // Insert into the database
-$sql = "INSERT INTO members (memberID, name, phone, address, password, hoursAvailable, maxTime, rating, careDollars) 
-        VALUES ($memberID, '$name', '$phone', '$address', '$password', $hoursAvailable, $maxTime, 0, 2000)";
+$sql = "INSERT INTO members (name, phone, address, password, hoursAvailable, maxTime, rating, careDollars) 
+        VALUES ('$name', '$phone', '$address', '$password', $hoursAvailable, $maxTime, 0, 2000)";
 
 if (mysqli_query($conn, $sql)) {
     echo json_encode(["message" => "Registration successful", "memberID" => $memberID]);
