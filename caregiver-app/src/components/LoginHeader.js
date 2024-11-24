@@ -1,18 +1,11 @@
 import React from "react";
-import loginPic from "../images/loginPic.png"
 
 function LoginHeader() {
     return (
-        <div className="flex flex-col justify-center items-center bg-gray-100 p-6 w-1/2">
-            <h1 className="text-4xl font-bold mb-4">
-                Care Starts <span className="text-green-500">Here</span>
+        <div className="text-left">
+            <h1 className="xl:text-8xl lg:text-8xl md:text-7xl sm:text-6xl font-bold mb-6">
+                Care Starts with <span className="text-green-500">WE</span>
             </h1>
-            <img
-                src={loginPic}
-                alt="Caregiver and Elderly Person"
-                className="rounded-lg"
-            >
-            </img>
         </div>
     )
 }
