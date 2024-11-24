@@ -15,13 +15,13 @@ $password = password_hash($data['password'], PASSWORD_BCRYPT); // Hash the passw
 $hoursAvailable = intval($data['hoursAvailable']);
 $maxTime = intval($data['maxTime']);
 
-// Check if phone already exists
-$checkQuery = "SELECT phone FROM members WHERE phone = '$phone'";
+// Check if email already exists
+$checkQuery = "SELECT email FROM members WHERE email = '$email'";
 $checkResult = mysqli_query($conn, $checkQuery);
 
 if (mysqli_num_rows($checkResult) > 0) {
-    // Phone number already exists
-    echo json_encode(["message" => "Phone number already exists"]);
+    // Email already exists
+    echo json_encode(["message" => "Email already exists"]);
     mysqli_close($conn);
     exit();
 }
