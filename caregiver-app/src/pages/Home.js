@@ -1,11 +1,14 @@
 import React from "react";
 import LoginHeader from "../components/LoginHeader";
-import LoginForm from "../components/LoginForm";
-import Navbar from "../components/navbar";
-import loginPic from "../images/loginPic.png";
+import Header from "../components/Header";
 
 function Home() {
-  return <div>Welcome to Home Page</div>;
+  return (
+    <div>
+      <Header />
+      <p>Welcome to Home Page</p>
+    </div>
+  );
 }
 
 export default Home;
