@@ -39,7 +39,7 @@ const ProfileCard = () => {
 const styles = {
   content: {
     flex: 2,
-    backgroundColor: "white",
+    backgroundColor: "#E9E9E9",
     padding: "20px",
     borderRadius: "10px",
     boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",

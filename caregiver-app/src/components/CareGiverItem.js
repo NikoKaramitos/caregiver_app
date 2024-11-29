@@ -29,6 +29,7 @@ const CareGiverItem = ({ name, rate, image, reviews, services }) => {
 
 const styles = {
   item: {
+    background: "#E9E9E9",
     display: "flex",
     alignItems: "center",
     marginBottom: "20px",

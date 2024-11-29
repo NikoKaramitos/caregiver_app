@@ -1,14 +1,28 @@
 import React from "react";
-import LoginHeader from "../components/LoginHeader";
+import ProfileCard from "../components/ProfileInfo";
+import ContractList from "../components/ContractList";
 import Header from "../components/Header";
 
-function Home() {
+const Home = () => {
   return (
     <div>
       <Header />
-      <p>Welcome to Home Page</p>
+      <div style={styles.container}>
+        <ProfileCard />
+        <ContractList />
+      </div>
     </div>
   );
-}
+};
+
+const styles = {
+  container: {
+    display: "flex",
+    justifyContent: "space-between",
+    padding: "0px 20px",
+    backgroundColor: "#f5f5f5",
+    height: "100vh",
+  },
+};
 
 export default Home;
