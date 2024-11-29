@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import InputField from "./InputField";
 import Button from "./Button";
 import Card from "./Card";
@@ -8,6 +9,8 @@ function LoginForm() {
 		username: "",
 		password: "",
 	});
+
+	const navigate = useNavigate();
 
 	const handleChange = (e) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,14 +24,21 @@ function LoginForm() {
 		let obj = { username: formData.username, password: formData.password };
 		let js = JSON.stringify(obj);
 		try {
-			const response = await fetch("http://localhost:8000/login.php", {
+			const response = await fetch("http://localhost:8000/login2.php", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: js,
 			});
 
 			let res = JSON.parse(await response.text());
-			console.log("Parsed Response:", res);
+
+			if (response.ok) {
+				console.log("Login Successful:", res);
+				navigate("/dashboard");
+			} else {
+				alert(res.error || "Login failed. FRAUD");
+			}
+
 		} catch (error) {
 			console.log(`ERROR: ${error}`);
 		}

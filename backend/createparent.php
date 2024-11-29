@@ -1,5 +1,13 @@
 <?php
-header('Content-Type: application/json'); // Set response type to JSON
+header('Access-Control-Allow-Origin: http://localhost:3000');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    // Handle preflight requests
+    http_response_code(204);
+    exit();
+}
 
 // Include your database connection
 include 'db.php';
@@ -20,7 +28,7 @@ if ($memberID <= 0) {
 }
 
 // Insert into the database
-$sql = "INSERT INTO parents (memberID, name, phone, address) 
+$sql = "INSERT INTO parent (memberID, name, phone, address) 
         VALUES ($memberID, '$name', '$phone', '$address')";
 
 // Execute the query

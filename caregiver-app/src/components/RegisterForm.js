@@ -3,70 +3,85 @@ import InputField from "./InputField";
 import Card from "./Card";
 import Button from "./Button";
 
-function RegisterForm({ goToNextStep }) {
-	const [formData, setFormData] = useState({
-		name: "",
-		password: "",
-		confirmPass: "",
-		phone: "",
-		email: "",
-		address: "",
-	});
+function RegisterForm({ formData, setFormData, goToNextStep }) {
+	const [error, setError] = useState(""); // To store password mismatch error
 
 	const handleChange = (e) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
 
+	const handleContinue = () => {
+		if (formData.password !== formData.confirmPass) {
+			setError("Passwords do not match.");
+			return;
+		}
+
+		setError(""); // Clear error if passwords match
+		goToNextStep();
+	};
+
 	return (
-		<div className="flex flex-col align-baseline">
+		<div className="flex align-baseline">
 				<form className="w-full">
 					<InputField
 						type="text"
-						name="username"
-						placeholder="username"
+						name="name"
+						placeholder="Name"
 						value={formData.name}
 						onChange={handleChange}
 					/>
 					<InputField
 						type="email"
 						name="email"
-						placeholder="email"
+						placeholder="Email"
 						value={formData.email}
 						onChange={handleChange}
 					/>
 					<InputField
 						type="text"
 						name="address"
-						placeholder="address"
+						placeholder="Address"
 						value={formData.address}
 						onChange={handleChange}
 					/>
 					<InputField
 						type="text"
 						name="phone"
-						placeholder="phone"
+						placeholder="Phone"
 						value={formData.phone}
+						onChange={handleChange}
+					/>
+					<InputField
+						type="text"
+						name="username"
+						placeholder="Username"
+						value={formData.username}
 						onChange={handleChange}
 					/>
 					<InputField
 						type="password"
 						name="password"
-						placeholder="password"
+						placeholder="Password"
 						value={formData.password}
 						onChange={handleChange}
 					/>
 					<InputField
 						type="password"
 						name="confirmPass"
-						placeholder="confirm password"
+						placeholder="Confirm Password"
 						value={formData.confirmPass}
 						onChange={handleChange}
 					/>
-					<Button
-						text="Continue"
-						type="button"
-						onClick={goToNextStep}
-					/>
+					{error && (
+						<p className="text-red-500 text-sm mt-2">{error}</p>
+					)}
+					<div className="flex justify-end">
+						<Button
+							text="Continue"
+							type="button"
+							onClick={handleContinue}
+						/>
+					</div>
 				</form>
 		</div>
 	);
