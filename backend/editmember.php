@@ -1,4 +1,14 @@
 <?php
+header('Access-Control-Allow-Origin: http://localhost:3000');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    // Handle preflight requests
+    http_response_code(204);
+    exit();
+}
+
 header('Content-Type: application/json'); // Set response type to JSON
 
 // Include your database connection
@@ -11,9 +21,9 @@ $data = json_decode(file_get_contents("php://input"), true);
 $memberID = intval($data['memberID']); // Get the memberID
 $name = mysqli_real_escape_string($conn, $data['name']);
 $phone = mysqli_real_escape_string($conn, $data['phone']);
+$email = mysqli_real_escape_string($conn, $data['email']);
 $address = mysqli_real_escape_string($conn, $data['address']);
-$hoursAvailable = intval($data['hoursAvailable']);
-$maxTime = intval($data['maxTime']);
+$timeAvailable = intval($data['timeAvailable']);
 
 // Validate that the memberID is valid
 if ($memberID <= 0) {
@@ -25,9 +35,9 @@ if ($memberID <= 0) {
 $sql = "UPDATE members SET 
             name = '$name', 
             phone = '$phone', 
+            email = '$email', 
             address = '$address', 
-            hoursAvailable = $hoursAvailable, 
-            maxTime = $maxTime
+            timeAvailable = $timeAvailable
         WHERE memberID = $memberID";
 
 // Execute the query
