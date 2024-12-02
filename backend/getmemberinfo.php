@@ -17,10 +17,10 @@ if (!$memberID && !$email) {
 // Build the query based on whether memberID or email is provided
 if ($memberID) {
     // Query by memberID
-    $sql = "SELECT name, phone, address, hoursAvailable, maxTime, email, lastTenRatings FROM members WHERE memberID = $memberID";
+    $sql = "SELECT username, name, phone, email, address, hoursAvailable, maxTime, lastTenRatings FROM members WHERE memberID = $memberID";
 } elseif ($email) {
     // Query by email
-    $sql = "SELECT name, phone, address, hoursAvailable, maxTime, email, lastTenRatings FROM members WHERE email = '$email'";
+    $sql = "SELECT username, name, phone, email, address, hoursAvailable, maxTime, lastTenRatings FROM members WHERE email = '$email'";
 }
 
 // Execute the query
