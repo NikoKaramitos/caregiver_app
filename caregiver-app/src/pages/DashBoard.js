@@ -1,27 +1,18 @@
 import React from "react";
-
-import Header from "../components/Header";
-import Sidebar from "../components/Sidebar";
-import Profile from "../components/ProfileCard";
+import LoginHeader from "../components/LoginHeader";
+import LoginForm from "../components/LoginForm";
+import Navbar from "../components/navbar";
+import loginPic from "../images/loginPic.png";
 
 function Dashboard() {
-  return (
-    <div>
-      <Header />
-      <div style={styles.container}>
-        <Sidebar />
-        <Profile />
-      </div>
-    </div>
-  );
+	return (
+		<div>
+        <Navbar />
+            <div className="flex flex-col items-center mt-10">
+                <h1 className="text-5xl font-bold">Welcome to the Dashboard!</h1>
+            </div>
+        </div>
+	);
 }
-
-const styles = {
-  container: {
-    display: "flex",
-    margin: "20px auto",
-    maxWidth: "1200px",
-  },
-};
 
 export default Dashboard;
