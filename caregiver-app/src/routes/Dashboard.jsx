@@ -1,13 +1,14 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import Dashboard from "../pages/Dashboard";
+import Login from "../pages/Login";
+import Dashboard from "../pages/DashBoard";
 
 function DashboardRoutes() {
-	return (
-		<Routes>
-			<Route path="/" element={<Dashboard />} />
-		</Routes>
-	);
+  return (
+    <Routes>
+      <Route path="/" element={<Dashboard />} />
+    </Routes>
+  );
 }
 
 export default DashboardRoutes;
