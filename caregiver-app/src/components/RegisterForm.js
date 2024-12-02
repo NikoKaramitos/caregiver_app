@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import InputField from "./InputField";
 import Button from "./Button";
 
-function RegisterForm({ formData, setFormData }) {
+function RegisterForm({ formData, setFormData, goToNextStep }) {
 	const [suggestions, setSuggestions] = useState([]); // Store autocomplete suggestions
 	const [error, setError] = useState(""); // For password mismatch errors
 
@@ -62,6 +62,7 @@ function RegisterForm({ formData, setFormData }) {
 		}
 
 		setError(""); // Clear error if passwords match
+		goToNextStep();
 	};
 
 	return (
