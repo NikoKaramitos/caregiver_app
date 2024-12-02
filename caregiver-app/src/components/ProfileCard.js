@@ -29,7 +29,7 @@ const ProfileCard = () => {
           <strong>Availability:</strong> Mondays + Tuesdays + Fridays
         </p>
       </div>
-      <a href="#" style={styles.contactButton}>
+      <a href="" style={styles.contactButton}>
         Contact
       </a>
     </div>

@@ -1,53 +1,56 @@
 <?php
-header('Content-Type: application/json'); // Set response type to JSON
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-// Include your database connection
-include 'db.php'; // Ensure db.php contains the database connection
+header('Access-Control-Allow-Origin: http://localhost:3000');
+header('Access-Control-Allow-Methods: GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
-// Get the input data (either memberID or email)
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit();
+}
+
+header('Content-Type: application/json');
+
+include 'db.php'; // Ensure the path is correct and the file is accessible
+
 $memberID = isset($_GET['memberID']) ? intval($_GET['memberID']) : null;
 $email = isset($_GET['email']) ? $_GET['email'] : null;
 
-// Validate the input: either memberID or email must be provided
 if (!$memberID && !$email) {
     echo json_encode(["message" => "You must provide either memberID or email"]);
     exit();
 }
 
-// Build the query based on whether memberID or email is provided
+// Prepare the SQL query safely to prevent SQL injection
 if ($memberID) {
-    // Query by memberID
-    $sql = "SELECT username, name, phone, email, address, hoursAvailable, maxTime, lastTenRatings FROM members WHERE memberID = $memberID";
-} elseif ($email) {
-    // Query by email
-    $sql = "SELECT username, name, phone, email, address, hoursAvailable, maxTime, lastTenRatings FROM members WHERE email = '$email'";
+    $stmt = $conn->prepare("SELECT username, name, email, phone, address, timeAvailable, lastTenRatings FROM members WHERE memberID = ?");
+    $stmt->bind_param("i", $memberID);
+} else {
+    $stmt = $conn->prepare("SELECT username, name, email, phone, address, timeAvailable, lastTenRatings FROM members WHERE email = ?");
+    $stmt->bind_param("s", $email);
 }
 
-// Execute the query
-$result = mysqli_query($conn, $sql);
+$stmt->execute();
+$result = $stmt->get_result();
 
-// Check if a record was found
-if (mysqli_num_rows($result) > 0) {
-    // Fetch the member data
-    $member = mysqli_fetch_assoc($result);
-    
-    // Return the member information in JSON format
+if ($result->num_rows > 0) {
+    $member = $result->fetch_assoc();
     echo json_encode([
         "message" => "Member found",
         "memberID" => $memberID ? $memberID : null,
         "name" => $member['name'],
         "phone" => $member['phone'],
         "address" => $member['address'],
-        "hoursAvailable" => $member['hoursAvailable'],
-        "maxTime" => $member['maxTime'],
+        "timeAvailable" => $member['timeAvailable'],
         "email" => $member['email'],
         "lastTenRatings" => $member['lastTenRatings']
     ]);
 } else {
-    // No matching member found
     echo json_encode(["message" => "No member found with the given memberID or email"]);
 }
 
-// Close the database connection
-mysqli_close($conn);
+$stmt->close();
+$conn->close();
 ?>
