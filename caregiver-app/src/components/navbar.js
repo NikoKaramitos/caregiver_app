@@ -12,7 +12,7 @@ function Navbar() {
           </div>
           <div className="hidden md:flex space-x-8">
             <a
-              href="/"
+              href="/home"
               className="mt-2 text-2xl text-gray-600 hover:text-green-500 font-medium"
             >
               Home
@@ -24,7 +24,7 @@ function Navbar() {
               Dashboard
             </a>
             <a
-              href="/login"
+              href="/"
               className="mt-2 text-2xl text-gray-600 hover:text-green-500 font-medium"
             >
               Login
