@@ -12,8 +12,8 @@ $username = mysqli_real_escape_string($conn, $data['username']);
 $newRating = floatval($data['newRating']);
 
 // Validate rating range
-if ($newRating < 0 || $newRating > 5) {
-    echo json_encode(["message" => "Error: Rating must be between 0 and 5."]);
+if ($newRating < 1 || $newRating > 5) {
+    echo json_encode(["message" => "Error: Rating must be between 1 and 5."]);
     mysqli_close($conn);
     exit();
 }
