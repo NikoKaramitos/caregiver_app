@@ -34,10 +34,11 @@ try {
     $endDate = $contract['endDate'];
 
     // Calculate the number of weeks the contract lasts
-    $startDateTime = strtotime("@$startDate");
-    $endDateTime = strtotime("@$endDate");
-    $diffInSeconds = $endDateTime - $startDateTime;
-    $weeks = ceil($diffInSeconds / (60 * 60 * 24 * 7)); // Convert seconds to weeks and use ceil
+    $startDateTime = new DateTime($startDate); // Start date as DateTime object
+    $endDateTime = new DateTime($endDate);     // End date as DateTime object
+    $interval = $startDateTime->diff($endDateTime); // Calculate the difference
+    $days = $interval->days; // Total days of the contract
+    $weeks = ceil($days / 7); // Convert days to weeks and apply ceiling
 
     // Fetch memberID of the recipient from the parent table
     $parentQuery = "SELECT memberID FROM parent WHERE parentID = $recipientParentID";
