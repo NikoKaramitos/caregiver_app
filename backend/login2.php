@@ -19,7 +19,7 @@ if ($conn->connect_error) {
     $password = $inData['password'];
 
     // Prepare the SQL statement to prevent SQL injection
-    $stmt = $conn->prepare("SELECT memberID, name, phone, address, timeAvailable, careDollars, rating, password FROM members WHERE username = ?");
+    $stmt = $conn->prepare("SELECT memberID, name, phone, address, timeAvailable, careDollars, password FROM members WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -39,7 +39,6 @@ if ($conn->connect_error) {
                 $row['address'],
                 $row['timeAvailable'],
                 $row['careDollars'],
-                $row['rating']
             );
         } else {
             // Password is incorrect
@@ -73,7 +72,7 @@ function returnWithError($err)
     sendResultInfoAsJson($retValue);
 }
 
-function returnWithInfo($memberID, $name, $phone, $address, $timeAvailable, $careDollars, $rating)
+function returnWithInfo($memberID, $name, $phone, $address, $timeAvailable, $careDollars)
 {
     $retValue = json_encode([
         "memberID" => $memberID,
@@ -82,7 +81,6 @@ function returnWithInfo($memberID, $name, $phone, $address, $timeAvailable, $car
         "address" => $address,
         "timeAvailable" => $timeAvailable,
         "careDollars" => $careDollars,
-        "rating" => $rating,
         "error" => ""
     ]);
     sendResultInfoAsJson($retValue);
