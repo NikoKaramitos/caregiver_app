@@ -21,6 +21,13 @@ function ContractForm() {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
 
+	// Function to convert date string to days since epoch
+	const getDaysSinceEpoch = (dateString) => {
+		const [year, month, day] = dateString.split("-").map(Number);
+		const date = new Date(year, month - 1, day);
+		return Math.floor(date.getTime() / (1000 * 60 * 60 * 24));
+	};
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		console.log("Contract Data Submitted:", formData);
@@ -42,12 +49,16 @@ function ContractForm() {
 			return;
 		}
 
+		// Convert dates to days since epoch
+		const startDays = getDaysSinceEpoch(formData.startDate);
+		const endDays = getDaysSinceEpoch(formData.endDate);
+
 		let obj = {
 			caregiverID: caregiverID,
 			username: formData.username,
 			parentName: formData.parentName,
-			startDate: formData.startDate,
-			endDate: formData.endDate,
+			startDate: startDays,
+			endDate: endDays,
 			weeklyHours: formData.weeklyHours,
 		};
 
@@ -127,7 +138,11 @@ function ContractForm() {
 					value={formData.weeklyHours}
 					onChange={handleChange}
 				/>
-				<Button text="Send Contract" type="button" onClick={handleSubmit}/>
+				<Button
+					text="Send Contract"
+					type="button"
+					onClick={handleSubmit}
+				/>
 			</form>
 		</div>
 	);
