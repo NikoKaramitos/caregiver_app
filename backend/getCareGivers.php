@@ -1,8 +1,8 @@
 <?php
 // Database connection parameters
-header('Access-Control-Allow-Origin: http://localhost:3000');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+// header('Access-Control-Allow-Origin: http://localhost:3000');
+// header('Access-Control-Allow-Methods: POST, OPTIONS');
+// header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
@@ -12,10 +12,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json");
 
-$servername = "127.0.0.1"; // Change if your database is on a different server
+// $servername = "127.0.0.1"; // Change if your database is on a different server
+$servername="localhost";
 $username = "root";        // Your MySQL username
 $password = "";            // Your MySQL password
-$dbname = "WeCare"; // Your database name
+// $dbname = "WeCare"; // Your database name
+$dbname="wecare_webapp_db";
 // Create a connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 
