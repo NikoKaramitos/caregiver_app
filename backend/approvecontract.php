@@ -68,19 +68,21 @@ try {
     $recipient = $members[1]; // The second record is for the recipient
 
     $caregiverTimeAvailable = $caregiver['timeAvailable'];
+    $caregiverCareDollars = $caregiver['careDollars'];
     $recipientCareDollars = $recipient['careDollars'];
 
-    // Calculate the money to subtract from the recipient's careDollars
-    $moneyToSubtract = $weeks * $weeklyHrs * 30;
+    // Calculate the careDollars spent
+    $careDollarsSpent = $weeks * $weeklyHrs * 30;
 
     if ($recipientCareDollars < $moneyToSubtract) {
         echo json_encode(["message" => "Not enough careDollars for the recipient"]);
         exit();
     }
 
-    // Update caregiver's timeAvailable and recipient's careDollars
+    // Update caregiver's timeAvailable and careDollars of caregiver and recipient
     $newCaregiverTimeAvailable = $caregiverTimeAvailable - $weeklyHrs;
-    $newRecipientCareDollars = $recipientCareDollars - $moneyToSubtract;
+    $newRecipientCareDollars = $recipientCareDollars - $careDollarsSpent;
+    $newCaregiverCareDollars = $caregiverCareDollars + $careDollarsSpent;
 
     if ($newCaregiverTimeAvailable < 0) {
         echo json_encode(["message" => "Not enough time available for the caregiver"]);
