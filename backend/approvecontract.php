@@ -30,15 +30,11 @@ try {
     $caregiverID = $contract['caregiverID'];
     $recipientParentID = $contract['recipientParentID'];
     $weeklyHrs = $contract['weeklyHrs'];
-    $startDate = $contract['startDate'];
-    $endDate = $contract['endDate'];
+    $startDate = $contract['startDate']; // Days since epoch
+    $endDate = $contract['endDate'];     // Days since epoch
 
     // Calculate the number of weeks the contract lasts
-    $startDateTime = new DateTime($startDate); // Start date as DateTime object
-    $endDateTime = new DateTime($endDate);     // End date as DateTime object
-    $interval = $startDateTime->diff($endDateTime); // Calculate the difference
-    $days = $interval->days; // Total days of the contract
-    $weeks = ceil($days / 7); // Convert days to weeks and apply ceiling
+    $weeks = ceil(($endDate - $startDate) / 7);
 
     // Fetch memberID of the recipient from the parent table
     $parentQuery = "SELECT memberID FROM parent WHERE parentID = $recipientParentID";
@@ -52,20 +48,21 @@ try {
     $recipientMemberID = $parent['memberID'];
 
     // Fetch timeAvailable and careDollars for both caregiver and recipient
-    $membersQuery = "SELECT timeAvailable, careDollars FROM members WHERE memberID IN ($caregiverID, $recipientMemberID)";
+    $membersQuery = "SELECT memberID, timeAvailable, careDollars FROM members WHERE memberID IN ($caregiverID, $recipientMemberID)";
     $membersResult = mysqli_query($conn, $membersQuery);
     if (mysqli_num_rows($membersResult) < 2) {
         echo json_encode(["message" => "One or both members not found in the members table"]);
         exit();
     }
 
-    $members = [];
+    // Assign caregiver and recipient data
     while ($member = mysqli_fetch_assoc($membersResult)) {
-        $members[] = $member;
+        if ($member['memberID'] == $caregiverID) {
+            $caregiver = $member;
+        } else {
+            $recipient = $member;
+        }
     }
-
-    $caregiver = $members[0]; // Assume the first record is for the caregiver
-    $recipient = $members[1]; // The second record is for the recipient
 
     $caregiverTimeAvailable = $caregiver['timeAvailable'];
     $caregiverCareDollars = $caregiver['careDollars'];
@@ -74,7 +71,7 @@ try {
     // Calculate the careDollars spent
     $careDollarsSpent = $weeks * $weeklyHrs * 30;
 
-    if ($recipientCareDollars < $moneyToSubtract) {
+    if ($recipientCareDollars < $careDollarsSpent) {
         echo json_encode(["message" => "Not enough careDollars for the recipient"]);
         exit();
     }
@@ -90,7 +87,7 @@ try {
     }
 
     // Update records in the members table
-    $updateCaregiverQuery = "UPDATE members SET timeAvailable = $newCaregiverTimeAvailable WHERE memberID = $caregiverID";
+    $updateCaregiverQuery = "UPDATE members SET timeAvailable = $newCaregiverTimeAvailable, careDollars = $newCaregiverCareDollars WHERE memberID = $caregiverID";
     $updateRecipientQuery = "UPDATE members SET careDollars = $newRecipientCareDollars WHERE memberID = $recipientMemberID";
 
     if (!mysqli_query($conn, $updateCaregiverQuery) || !mysqli_query($conn, $updateRecipientQuery)) {
