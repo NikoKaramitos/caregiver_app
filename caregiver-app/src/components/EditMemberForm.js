@@ -40,7 +40,7 @@ function EditMemberForm({ initialValues, onSubmit }) {
 				{
 					method: "GET",
 					headers: {
-						Authorization: `Bearer ${process.env.REACT_APP_HERE_API_KEY}`,
+						Authorization: `${process.env.REACT_APP_HERE_API_KEY}`,
 					},
 				}
 			);

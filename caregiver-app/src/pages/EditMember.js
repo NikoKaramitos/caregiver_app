@@ -63,7 +63,7 @@ function EditMember() {
 					headers: {
 						"Content-Type": "application/json",
 					},
-					body: JSON.stringify({ ...formData, memberID: memberId }),
+					body: JSON.stringify({ ...formData, memberID: userData.id }),
 				}
 			);
 
