@@ -47,13 +47,13 @@ const ContractList = () => {
           style={activeTab === "Care Giving" ? styles.activeTab : styles.tab}
           onClick={() => setActiveTab("Care Giving")}
         >
-          Care Giving
+          Care Receiving
         </button>
         <button
           style={activeTab === "Care Receiving" ? styles.activeTab : styles.tab}
           onClick={() => setActiveTab("Care Receiving")}
         >
-          Care Receiving
+          Care Giving
         </button>
       </div>
 
