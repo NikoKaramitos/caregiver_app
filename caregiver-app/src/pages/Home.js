@@ -2,11 +2,13 @@ import React from "react";
 import ProfileCard from "../components/ProfileInfo";
 import ContractList from "../components/ContractList";
 import Header from "../components/Header";
+import Navbar from "../components/navbar";
+
 
 const Home = () => {
   return (
     <div>
-      <Header />
+      <Navbar />
       <div style={styles.container}>
         <ProfileCard />
         <ContractList />

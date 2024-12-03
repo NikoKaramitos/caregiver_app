@@ -4,6 +4,7 @@ import Register from "./routes/Register";
 import Login from "./routes/Login";
 import Dashboard from "./routes/Dashboard";
 import EditMember from "./routes/EditMember";
+import Contract from "./routes/Contract";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/" element={<Login />} />
         <Route path="/editmember" element={<EditMember />} />
+        <Route path="/contract" element={<Contract />} />
       </Routes>
     </Router>
   );
