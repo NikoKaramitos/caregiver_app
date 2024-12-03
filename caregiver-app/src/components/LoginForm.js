@@ -33,12 +33,19 @@ function LoginForm() {
 			let res = JSON.parse(await response.text());
 
 			if (response.ok) {
+				let user = {
+					id: res.memberID,
+					name: res.name,
+					phone: res.phone,
+					address: res.address,
+					time: res.timeAvailable,
+				};
+				localStorage.setItem("userData", JSON.stringify(user));
 				console.log("Login Successful:", res);
 				navigate("/dashboard");
 			} else {
 				alert(res.error || "Login failed. FRAUD");
 			}
-
 		} catch (error) {
 			console.log(`ERROR: ${error}`);
 		}

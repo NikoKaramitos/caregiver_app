@@ -2,21 +2,27 @@ import React, { useState, useEffect } from "react";
 import EditMemberForm from "../components/EditMemberForm";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import Card from "../components/Card";
+import Navbar from "../components/navbar";
 
 function EditMember() {
 	const { memberId } = useParams();
 	const [initialValues, setInitialValues] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState("");
-    const navigate = useNavigate();
+	const navigate = useNavigate();
+	const userData = JSON.parse(localStorage.getItem("userData"));
 
 	useEffect(() => {
-		fetch(`http://localhost:8000/getmemberinfo.php?memberID=${memberId}`, {
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-			},
-		})
+		fetch(
+			`http://localhost:8000/getmemberinfo.php?memberID=${userData.id}`,
+			{
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+				},
+			}
+		)
 			.then(async (response) => {
 				if (!response.ok) {
 					const errorText = await response.text();
@@ -46,7 +52,7 @@ function EditMember() {
 			.finally(() => {
 				setIsLoading(false);
 			});
-	}, [memberId]);
+	}, [userData.id]);
 
 	const handleFormSubmit = async (formData) => {
 		try {
@@ -65,7 +71,7 @@ function EditMember() {
 
 			if (data.message === "Member updated successfully") {
 				alert("Information updated successfully!");
-                navigate('/home');
+				navigate("/home");
 			} else {
 				alert(data.message || "Failed to update member information.");
 			}
@@ -76,18 +82,27 @@ function EditMember() {
 	};
 
 	return (
-		<div className="container mx-auto p-4">
-			<h1 className="text-2xl font-bold mb-4">Edit Member Information</h1>
-			{isLoading ? (
-				<p>Loading member data...</p>
-			) : error ? (
-				<p className="text-red-500">{error}</p>
-			) : (
-				<EditMemberForm
-					initialValues={initialValues}
-					onSubmit={handleFormSubmit}
-				/>
-			)}
+		<div>
+			<Navbar />
+			<div className="flex flex-col px-20 py-10 mt-10">
+				<Card>
+					<div className="container mx-auto p-4">
+						<h1 className="text-2xl font-bold mb-4 text-center">
+							Edit Member Information
+						</h1>
+						{isLoading ? (
+							<p>Loading member data...</p>
+						) : error ? (
+							<p className="text-red-500">{error}</p>
+						) : (
+							<EditMemberForm
+								initialValues={initialValues}
+								onSubmit={handleFormSubmit}
+							/>
+						)}
+					</div>
+				</Card>
+			</div>
 		</div>
 	);
 }
