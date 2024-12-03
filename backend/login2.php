@@ -1,73 +1,90 @@
 <?php
-    header('Access-Control-Allow-Origin: http://localhost:3000');
-    header('Access-Control-Allow-Methods: POST, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Allow-Origin: http://localhost:3000');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
-    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-        // Handle preflight requests
-        http_response_code(204);
-        exit();
-    }
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit();
+}
 
-    $inData = getRequestInfo();
+$inData = getRequestInfo();
 
-    $memberID = 0;
-    $name = "";
-    $phone = "";
-    $address = "";
-    $timeAvailable = 0;
-    $careDollars = 0;
-    $rating = 0;
+$conn = new mysqli("127.0.0.1", "root", "", "WeCare");
+if ($conn->connect_error) {
+    returnWithError($conn->connect_error);
+} else {
+    // Get the username and password from the input data
+    $username = $inData['username'];
+    $password = $inData['password'];
 
+    // Prepare the SQL statement to prevent SQL injection
+    $stmt = $conn->prepare("SELECT memberID, name, phone, address, timeAvailable, careDollars, rating, password FROM members WHERE username = ?");
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    $conn = new mysqli("127.0.0.1", "root", "", "WeCare");
-    if( $conn->connect_error )
-    {
-        returnWithError( $conn->connect_error );
-    }
-    else
-    {
-        $stmt = $conn->prepare("SELECT memberID,name,phone,address, timeAvailable, careDollars, rating FROM members WHERE username=? AND password =?");
-        $stmt->bind_param("ss", $inData["username"], $inData["password"]);
-        $stmt->execute();
-        $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        // Retrieve the stored hashed password
+        $storedHash = $row['password'];
 
-        if( $row = $result->fetch_assoc()  )
-        {
+        // Verify the password
+        if (password_verify($password, $storedHash)) {
+            // Password is correct, return user info
             http_response_code(200);
-            returnWithInfo($row['memberID'], $row['name'], $row['phone'], $row['address'], $row['timeAvailable'], $row['careDollars'], $row['rating'] );
+            returnWithInfo(
+                $row['memberID'],
+                $row['name'],
+                $row['phone'],
+                $row['address'],
+                $row['timeAvailable'],
+                $row['careDollars'],
+                $row['rating']
+            );
+        } else {
+            // Password is incorrect
+            http_response_code(401); // Unauthorized
+            returnWithError("Incorrect password");
         }
-        else
-        {
-            http_response_code(409);
-            returnWithError("No Records Found");
-        }
-
-        $stmt->close();
-        $conn->close();
+    } else {
+        // Username not found
+        http_response_code(404); // Not Found
+        returnWithError("User not found");
     }
 
-    function getRequestInfo()
-    {
-        return json_decode(file_get_contents('php://input'), true);
-    }
+    $stmt->close();
+    $conn->close();
+}
 
-    function sendResultInfoAsJson( $obj )
-    {
-        header('Content-type: application/json');
-        echo $obj;
-    }
+function getRequestInfo()
+{
+    return json_decode(file_get_contents('php://input'), true);
+}
 
-    function returnWithError( $err )
-    {
-        $retValue = '{"error":"' . $err . '"}';
-        sendResultInfoAsJson( $retValue );
-    }
+function sendResultInfoAsJson($obj)
+{
+    header('Content-type: application/json');
+    echo $obj;
+}
 
-    function returnWithInfo( $memberID, $name, $phone, $address, $timeAvailable, $careDollars, $rating )
-    {
-        $retValue = '{"memberID":"' . $memberID . '","name":"' . $name . '","phone":"' . $phone . '","address":"' . $address . '","timeAvailable":"' . $timeAvailable . '","careDollars":"' . $careDollars . '","rating":"' . $rating . '","error":""}';
-        sendResultInfoAsJson( $retValue );
-    }
+function returnWithError($err)
+{
+    $retValue = json_encode(["error" => $err]);
+    sendResultInfoAsJson($retValue);
+}
 
+function returnWithInfo($memberID, $name, $phone, $address, $timeAvailable, $careDollars, $rating)
+{
+    $retValue = json_encode([
+        "memberID" => $memberID,
+        "name" => $name,
+        "phone" => $phone,
+        "address" => $address,
+        "timeAvailable" => $timeAvailable,
+        "careDollars" => $careDollars,
+        "rating" => $rating,
+        "error" => ""
+    ]);
+    sendResultInfoAsJson($retValue);
+}
 ?>

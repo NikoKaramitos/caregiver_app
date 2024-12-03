@@ -6,8 +6,27 @@ function RegisterForm({ formData, setFormData, goToNextStep }) {
 	const [suggestions, setSuggestions] = useState([]); // Store autocomplete suggestions
 	const [error, setError] = useState(""); // For password mismatch errors
 
+	const [passwordRequirements, setPasswordRequirements] = useState({
+		length: false,
+		uppercase: false,
+		lowercase: false,
+		number: false,
+	});
+
 	const handleChange = (e) => {
-		setFormData({ ...formData, [e.target.name]: e.target.value });
+		const { name, value } = e.target;
+		setFormData({ ...formData, [name]: value });
+
+		if (name === "password") {
+			// Update password requirements
+			const requirements = {
+				length: value.length >= 8,
+				uppercase: /[A-Z]/.test(value),
+				lowercase: /[a-z]/.test(value),
+				number: /\d/.test(value),
+			};
+			setPasswordRequirements(requirements);
+		}
 	};
 
 	const handleBlur = () => {
@@ -55,7 +74,33 @@ function RegisterForm({ formData, setFormData, goToNextStep }) {
 		setSuggestions([]); // Clear suggestions after selection
 	};
 
-	const handleContinue = () => {
+	const handleContinue = async () => {
+		try {
+			const duplicate = await fetch(
+				"http://localhost:8000/duplicate.php",
+				{
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						username: formData.username,
+						email: formData.email,
+					}),
+				}
+			);
+
+			if (!duplicate.ok) throw new Error("Duplicate check error");
+
+			const dupResponse = await duplicate.json();
+			if (dupResponse.error !== "") {
+				setError(dupResponse.error);
+				return;
+			}
+		} catch (error) {}
+		const passwordPattern = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}/;
+		if (!passwordPattern.test(formData.password)) {
+			setError("Password Requirements not met");
+			return;
+		}
 		if (formData.password !== formData.confirmPass) {
 			setError("Passwords do not match.");
 			return;
@@ -132,6 +177,51 @@ function RegisterForm({ formData, setFormData, goToNextStep }) {
 					value={formData.password}
 					onChange={handleChange}
 				/>
+				{formData.password && (
+					<ul className="password-requirements text-sm mb-2">
+						<li
+							className={
+								passwordRequirements.length
+									? "text-green-500"
+									: "text-red-500"
+							}
+						>
+							{passwordRequirements.length ? "✓" : "✗"} At least 8
+							characters
+						</li>
+						<li
+							className={
+								passwordRequirements.uppercase
+									? "text-green-500"
+									: "text-red-500"
+							}
+						>
+							{passwordRequirements.uppercase ? "✓" : "✗"} At
+							least one uppercase letter
+						</li>
+						<li
+							className={
+								passwordRequirements.lowercase
+									? "text-green-500"
+									: "text-red-500"
+							}
+						>
+							{passwordRequirements.lowercase ? "✓" : "✗"} At
+							least one lowercase letter
+						</li>
+						<li
+							className={
+								passwordRequirements.number
+									? "text-green-500"
+									: "text-red-500"
+							}
+						>
+							{passwordRequirements.number ? "✓" : "✗"} At least
+							one number
+						</li>
+					</ul>
+				)}
+
 				<InputField
 					type="password"
 					name="confirmPass"

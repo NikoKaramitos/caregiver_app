@@ -6,7 +6,7 @@ const ProfileInfo = ({ memberId }) => {
 	const navigate = useNavigate();
 
 	const handleEditClick = () => {
-		navigate(`/editmember/${memberId}`);
+		navigate(`/editmember`);
 	};
 
 	return (
