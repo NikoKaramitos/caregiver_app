@@ -1,44 +1,59 @@
 <?php
 // Database connection parameters
-$servername = "localhost"; // Change if your database is on a different server
-$username = "root";        // Your MySQL username
-// $password = "";            // Your MySQL password
-$dbname = "wecare_webapp_db"; // Your database name
+header('Access-Control-Allow-Origin: http://localhost:3000');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit();
+}
+
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json");
+
+$servername = "127.0.0.1"; // Change if your database is on a different server
+$username = "root";        // Your MySQL username
+$password = "";            // Your MySQL password
+$dbname = "WeCare"; // Your database name
 // Create a connection
-$conn = new mysqli($servername, $username, $dbname);
+$conn = new mysqli($servername, $username, $password, $dbname);
 
 // Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// SQL query to fetch caregiver data from the `members` table
-$sql = "SELECT name, careDollars AS rate, rating AS reviews, timeAvailable AS services, address, phone FROM members";
+// SQL query to fetch caregiver data from the new_member table
+$sql = "SELECT name, careDollars AS rate, rating AS reviews, timeAvailable AS services, address, phone, age, image FROM new_member";
 $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
     $caregivers = array();
-    
-    // Fetch all rows as an associative array
+
     while ($row = $result->fetch_assoc()) {
-        // Add missing fields with static values
-        $row['age'] = 30; // Static value for age
-        $row['state'] = "Florida"; // Static value for state
-        $row['city'] = "Orlando"; // Static value for city
-        $row['statement'] = "This is a static statement."; // Static value for statement
-        $row['availability'] = "Mondays + Wednesdays"; // Static value for availability
-        $row['image'] = "/path/to/default_image.jpg"; // Static value for profile image
+        $address = $row['address'];
+        $city = extractCityFromAddress($address);
+
+        $row['city'] = $city;
 
         $caregivers[] = $row;
     }
 
-    // Return data as JSON
     echo json_encode($caregivers);
 } else {
     echo json_encode([]);
 }
 
-// Close the connection
 $conn->close();
+
+
+ 
+// Extract city from an address string. Modify this logic based on your address format. @param string $address @return string
+function extractCityFromAddress($address) {
+    // Example logic: Assume the city is the second part of the address, separated by commas
+    $parts = explode(',', $address);
+
+    return isset($parts[1]) ? trim($parts[1]) : 'Unknown City';
+}
 ?>
