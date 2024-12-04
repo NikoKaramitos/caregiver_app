@@ -11,6 +11,49 @@ const Sidebar = () => {
   const [filters, setFilters] = useState({ rate: "", rating: "", city: "" });
   const [selectedCaregiver, setSelectedCaregiver] = useState(null);
 
+  //   new
+  const [showRateModal, setShowRateModal] = useState(false);
+  const [selectedRating, setSelectedRating] = useState(0);
+  const handleRate = () => {
+    setShowRateModal(true);
+  };
+  const renderStars2 = (rating, isInteractive) => {
+    return Array(5)
+      .fill(null)
+      .map((_, index) => (
+        <span
+          key={index}
+          onClick={isInteractive ? () => setSelectedRating(index + 1) : null}
+          style={{
+            fontSize: "24px",
+            cursor: isInteractive ? "pointer" : "default",
+            color: index < rating ? "#FFD700" : "#ccc",
+          }}
+        >
+          ★
+        </span>
+      ));
+  };
+  const handleRatingSubmit = () => {
+    alert(`You rated this caregiver ${selectedRating} stars.`);
+
+    fetch("http://localhost/ratingg.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        caregiverName: selectedCaregiver.name,
+        rating: selectedRating,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Rating submitted:", data);
+      })
+      .catch((error) => console.error("Error submitting rating:", error));
+    setShowRateModal(false);
+  };
+
+  // stuff
   const handleContact = (caregiverName) => {
     alert(`You have contacted ${caregiverName}. He will contact you soon.`);
   };
@@ -174,9 +217,30 @@ const Sidebar = () => {
             >
               Contact
             </button>
+            <button style={styles.rateButton} onClick={handleRate}>
+              Rate
+            </button>
           </div>
         )}
       </div>
+
+      {showRateModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContent}>
+            <h3>Rate the Item</h3>
+            <div>{renderStars2(selectedRating, true)}</div>
+            <button onClick={handleRatingSubmit} style={styles.submitButton}>
+              Submit
+            </button>
+            <button
+              onClick={() => setShowRateModal(false)}
+              style={styles.cancelButton}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -289,6 +353,18 @@ const styles = {
     boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
     transition: "background-color 0.3s ease",
   },
+  rateButton: {
+    backgroundColor: "red",
+    color: "white",
+    padding: "10px 20px",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+    marginTop: "20px",
+    fontSize: "1em",
+    boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
+    transition: "background-color 0.3s ease",
+  },
   contactButtonHover: {
     backgroundColor: "#45a049", // Slightly darker shade for hover effect
   },
@@ -302,6 +378,44 @@ const styles = {
     cursor: "pointer",
     fontSize: "1em",
     transition: "background-color 0.3s ease",
+  },
+  modalOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    padding: "20px",
+    borderRadius: "8px",
+    width: "300px",
+    textAlign: "center",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+  },
+  submitButton: {
+    marginTop: "10px",
+    padding: "8px 16px",
+    backgroundColor: "#28a745",
+    color: "#fff",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+  },
+  cancelButton: {
+    marginTop: "10px",
+    marginLeft: "10px",
+    padding: "8px 16px",
+    backgroundColor: "#dc3545",
+    color: "#fff",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
   },
 };
 

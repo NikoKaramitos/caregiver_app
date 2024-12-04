@@ -1,5 +1,5 @@
 import React from "react";
-import ProfileCard from "../components/ProfileInfo";
+import ProfileCard from "../components/ProfileCard";
 import ContractList from "../components/ContractList";
 import Header from "../components/Header";
 
