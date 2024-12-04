@@ -1,7 +1,13 @@
 <?php
+header('Access-Control-Allow-Origin: http://localhost:3000');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
-
-header('Content-Type: application/json'); // Set response type to JSON
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    // Handle preflight requests
+    http_response_code(204);
+    exit();
+}
 
 // Include your database connection
 include 'db.php';
@@ -10,54 +16,28 @@ include 'db.php';
 $data = json_decode(file_get_contents("php://input"), true);
 
 // Extract and sanitize input
-$caregiverID = intval($data['caregiverID']); // Ensure caregiverID is valid
-$username = mysqli_real_escape_string($conn, $data['username']); // Sanitize username
-$parentName = mysqli_real_escape_string($conn, $data['parentName']); // Sanitize parent name
-$startDate = mysqli_real_escape_string($conn, $data['startDate']);
-$endDate = mysqli_real_escape_string($conn, $data['endDate']);
-$weeklyHours = intval($data['weeklyHours']); // Ensure weeklyHours is valid
+$memberID = intval($data['memberID']); // Assuming memberID is sent with the data
+$name = mysqli_real_escape_string($conn, $data['name']);
+$phone = mysqli_real_escape_string($conn, $data['phone']);
+$address = mysqli_real_escape_string($conn, $data['address']);
 
-// Ensure caregiverID is valid
-if ($caregiverID <= 0) {
-    echo json_encode(["message" => "Invalid caregiverID"]);
+// Ensure that memberID exists (you can add your own validation logic)
+if ($memberID <= 0) {
+    echo json_encode(["message" => "Invalid memberID"]);
     exit();
 }
 
-// Fetch the memberID of the recipient based on the username and parent name
-$memberQuery = "SELECT memberID FROM members WHERE username = '$username'";
-$memberResult = mysqli_query($conn, $memberQuery);
-
-if (mysqli_num_rows($memberResult) == 0) {
-    echo json_encode(["message" => "No member found with the given username"]);
-    exit();
-}
-
-$member = mysqli_fetch_assoc($memberResult);
-$memberID = $member['memberID'];
-
-// Fetch recipient's parentID from the parent table based on memberID and parent name
-$parentQuery = "SELECT parentID FROM parent WHERE memberID = $memberID AND name = '$parentName'";
-$parentResult = mysqli_query($conn, $parentQuery);
-
-if (mysqli_num_rows($parentResult) == 0) {
-    echo json_encode(["message" => "No parent found with the given memberID and parent name"]);
-    exit();
-}
-
-$parent = mysqli_fetch_assoc($parentResult);
-$recipientParentID = $parent['parentID'];
-
-// Insert into the contracts table
-$sql = "INSERT INTO contracts (caregiverID, recipientParentID, startDate, endDate, weeklyHours) 
-        VALUES ($caregiverID, $recipientParentID, '$startDate', '$endDate', $weeklyHours)";
+// Insert into the database
+$sql = "INSERT INTO parent (memberID, name, phone, address) 
+        VALUES ($memberID, '$name', '$phone', '$address')";
 
 // Execute the query
 if (mysqli_query($conn, $sql)) {
-    // Get the auto-incremented contractID
-    $contractID = mysqli_insert_id($conn);
-    echo json_encode(["message" => "Contract created successfully", "contractID" => $contractID]);
+    // Get the auto-incremented parentID
+    $parentID = mysqli_insert_id($conn);
+    echo json_encode(["message" => "Parent created successfully", "parentID" => $parentID]);
 } else {
-    echo json_encode(["message" => "Error creating contract: " . mysqli_error($conn)]);
+    echo json_encode(["message" => "Error creating parent: " . mysqli_error($conn)]);
 }
 
 // Close the database connection
