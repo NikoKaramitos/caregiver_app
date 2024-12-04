@@ -25,20 +25,36 @@ $email = mysqli_real_escape_string($conn, $data['email']);
 $address = mysqli_real_escape_string($conn, $data['address']);
 $timeAvailable = intval($data['timeAvailable']);
 
+// Optional fields
+$profilePictureURL = isset($data['profilePictureURL']) ? mysqli_real_escape_string($conn, $data['profilePictureURL']) : null;
+$rate = isset($data['rate']) ? intval($data['rate']) : null;
+
 // Validate that the memberID is valid
 if ($memberID <= 0) {
     echo json_encode(["message" => "Invalid memberID"]);
     exit();
 }
 
-// Build the update SQL query
-$sql = "UPDATE members SET 
-            name = '$name', 
-            phone = '$phone', 
-            email = '$email', 
-            address = '$address', 
-            timeAvailable = $timeAvailable
-        WHERE memberID = $memberID";
+// Build the dynamic update SQL query
+$updates = [
+    "name = '$name'",
+    "phone = '$phone'",
+    "email = '$email'",
+    "address = '$address'",
+    "timeAvailable = $timeAvailable"
+];
+
+if ($profilePictureURL !== null) {
+    $updates[] = "profilePictureURL = '$profilePictureURL'";
+}
+
+if ($rate !== null) {
+    $updates[] = "rate = $rate";
+}
+
+$updateQuery = implode(", ", $updates);
+
+$sql = "UPDATE members SET $updateQuery WHERE memberID = $memberID";
 
 // Execute the query
 if (mysqli_query($conn, $sql)) {

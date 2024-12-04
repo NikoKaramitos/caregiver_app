@@ -1,76 +1,60 @@
 <?php
-$host = '127.0.0.1';
-$user = 'root';
-$password = '';
-$database = 'wecare_webapp_db';
+header('Access-Control-Allow-Origin: http://localhost:3000');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
-$conn = mysqli_connect($host, $user, $password, $database);
-
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-}
-
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// header('Access-Control-Allow-Origin: http://localhost:3000');
-// header('Access-Control-Allow-Methods: GET, OPTIONS');
-// header('Access-Control-Allow-Headers: Content-Type, Authorization');
-
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json");
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit();
 }
 
+header('Content-Type: application/json'); // Set response type to JSON
 
-header('Content-Type: application/json');
+// Include your database connection
+include 'db.php'; // Ensure db.php contains the database connection
 
-$memberID = isset($_GET['memberID']) ? intval($_GET['memberID']) : null;
+// Get the memberID from the query parameter
+$memberID = isset($_GET['memberID']) ? intval($_GET['memberID']) : 0;
 
-if (!$memberID ) {
-    echo json_encode(["message" => "You must provide either memberID"]);
+if ($memberID <= 0) {
+    echo json_encode(["message" => "Invalid memberID"]);
     exit();
 }
 
-// Prepare the SQL query safely to prevent SQL injection
-if ($memberID) {
-    $stmt = $conn->prepare("SELECT username, name, email, phone, address, timeAvailable, lastTenRatings, totalStars, ratingCount FROM members WHERE memberID = ?");
-    $stmt->bind_param("i", $memberID);
-} else {
-    $stmt = $conn->prepare("SELECT username, name, email, phone, address, timeAvailable, lastTenRatings, totalStars, ratingCount FROM members WHERE email = ?");
-    $stmt->bind_param("s", $email);
-}
+// SQL query to fetch member data
+$sql = "SELECT 
+		username,
+            	name, 
+            	phone, 
+            	email, 
+            	address, 
+            	timeAvailable,
+		careDollars,
+            	profilePictureURL, 
+		lastTenRatings,
+            	rate 
+        FROM members 
+        WHERE memberID = $memberID";
 
-$stmt->execute();
-$result = $stmt->get_result();
+$result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
-    $member = $result->fetch_assoc();
-
-    // Calculate the average rating as an integer (rounded)
-    $averageRating = ($member['ratingCount'] > 0) 
-        ? round($member['totalStars'] / $member['ratingCount']) 
-        : 0;
-
+    $row = $result->fetch_assoc();
     echo json_encode([
         "message" => "Member found",
-        "memberID" => $memberID ? $memberID : null,
-        "username" => $member['username'],
-        "name" => $member['name'],
-        "phone" => $member['phone'],
-        "address" => $member['address'],
-        "timeAvailable" => $member['timeAvailable'],
-        "lastTenRatings" => $member['lastTenRatings'],
-        "careDollars"=> $member['careDollars']
-        "email" => $member['email'],
-        "averageRating" => $averageRating
+        "name" => $row['name'],
+        "phone" => $row['phone'],
+        "email" => $row['email'],
+        "address" => $row['address'],
+        "timeAvailable" => $row['timeAvailable'],
+	"careDollars" => $row['careDollars'],
+        "profilePictureURL" => $row['profilePictureURL'],
+	"lastTenRatings" => $row['lastTenRatings'],
+        "rate" => $row['rate'],
     ]);
 } else {
-    echo json_encode(["message" => "No member found with the given memberID or email"]);
+    echo json_encode(["message" => "Member not found"]);
 }
 
-$stmt->close();
 $conn->close();
 ?>

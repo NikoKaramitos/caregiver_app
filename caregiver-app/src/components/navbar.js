@@ -13,7 +13,8 @@ function Navbar() {
 		if (
 			location.pathname === "/home" ||
 			location.pathname === "/dashboard" ||
-			location.pathname === "/editmember"
+			location.pathname === "/editmember" ||
+			location.pathname === "/contract"
 		) {
 			// Show Home and Dashboard if the user is logged in
 			return (

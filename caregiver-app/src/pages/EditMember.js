@@ -1,3 +1,5 @@
+// EditMember.js
+
 import React, { useState, useEffect } from "react";
 import EditMemberForm from "../components/EditMemberForm";
 import { useParams } from "react-router-dom";
@@ -14,6 +16,12 @@ function EditMember() {
 	const userData = JSON.parse(localStorage.getItem("userData"));
 
 	useEffect(() => {
+		if (!userData || !userData.id) {
+			setError("User not logged in.");
+			setIsLoading(false);
+			return;
+		}
+
 		fetch(
 			`http://localhost:8000/getmemberinfo.php?memberID=${userData.id}`,
 			{
@@ -40,6 +48,8 @@ function EditMember() {
 						email: data.email,
 						address: data.address,
 						timeAvailable: data.timeAvailable,
+						profilePictureURL: data.profilePictureURL,
+						rate: data.rate,
 					});
 				} else {
 					setError("Member not found");
@@ -55,6 +65,7 @@ function EditMember() {
 	}, [userData.id]);
 
 	const handleFormSubmit = async (formData) => {
+		console.log("Form Data Submitted:", formData); // Debugging line
 		try {
 			const response = await fetch(
 				"http://localhost:8000/editmember.php",
@@ -63,7 +74,10 @@ function EditMember() {
 					headers: {
 						"Content-Type": "application/json",
 					},
-					body: JSON.stringify({ ...formData, memberID: userData.id }),
+					body: JSON.stringify({
+						...formData,
+						memberID: userData.id,
+					}),
 				}
 			);
 

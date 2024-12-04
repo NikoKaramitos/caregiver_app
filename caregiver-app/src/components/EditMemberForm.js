@@ -1,17 +1,36 @@
-import React, { useState } from "react";
+// EditMemberForm.js
+
+import React, { useState, useEffect } from "react";
 import InputField from "./InputField";
 import Button from "./Button";
 
 function EditMemberForm({ initialValues, onSubmit }) {
 	const [formData, setFormData] = useState({
-		name: initialValues?.name || "",
-		phone: initialValues?.phone || "",
-		email: initialValues?.email || "",
-		address: initialValues?.address || "",
-		timeAvailable: initialValues?.timeAvailable || "",
+		name: "",
+		phone: "",
+		email: "",
+		address: "",
+		timeAvailable: "",
+		profilePictureURL: "",
+		rate: "",
 	});
 
 	const [suggestions, setSuggestions] = useState([]); // Store autocomplete suggestions
+
+	// Update formData when initialValues change
+	useEffect(() => {
+		if (initialValues) {
+			setFormData({
+				name: initialValues.name || "",
+				phone: initialValues.phone || "",
+				email: initialValues.email || "",
+				address: initialValues.address || "",
+				timeAvailable: initialValues.timeAvailable || "",
+				profilePictureURL: initialValues.profilePictureURL || "",
+				rate: initialValues.rate || "",
+			});
+		}
+	}, [initialValues]);
 
 	const handleChange = (e) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -69,6 +88,7 @@ function EditMemberForm({ initialValues, onSubmit }) {
 	return (
 		<div className="flex align-baseline">
 			<form className="w-full" onSubmit={handleSubmit}>
+				<span>Name</span>
 				<InputField
 					type="text"
 					name="name"
@@ -76,6 +96,7 @@ function EditMemberForm({ initialValues, onSubmit }) {
 					value={formData.name}
 					onChange={handleChange}
 				/>
+				<span>Email</span>
 				<InputField
 					type="email"
 					name="email"
@@ -83,6 +104,7 @@ function EditMemberForm({ initialValues, onSubmit }) {
 					value={formData.email}
 					onChange={handleChange}
 				/>
+				<span>Address</span>
 				<div className="relative mb-4">
 					<input
 						type="text"
@@ -111,6 +133,7 @@ function EditMemberForm({ initialValues, onSubmit }) {
 						</ul>
 					)}
 				</div>
+				<span>Phone Number</span>
 				<InputField
 					type="text"
 					name="phone"
@@ -118,11 +141,38 @@ function EditMemberForm({ initialValues, onSubmit }) {
 					value={formData.phone}
 					onChange={handleChange}
 				/>
+				<div className="flex flex-row justify-between">
+					<div className="w-1/2 mr-2">
+						<label htmlFor="timeAvailable" className="block mb-1">
+							Hours Available
+						</label>
+						<InputField
+							type="number"
+							name="timeAvailable"
+							placeholder="Hours Available"
+							value={formData.timeAvailable}
+							onChange={handleChange}
+						/>
+					</div>
+					<div className="w-1/2 ml-2">
+						<label htmlFor="rate" className="block mb-1">
+							Rate
+						</label>
+						<InputField
+							type="number"
+							name="rate"
+							placeholder="Rate"
+							value={formData.rate}
+							onChange={handleChange}
+						/>
+					</div>
+				</div>
+				<span>Profile Picture</span>
 				<InputField
-					type="number"
-					name="timeAvailable"
-					placeholder="Hours Available"
-					value={formData.timeAvailable}
+					type="text"
+					name="profilePictureURL" // Ensure this matches the backend
+					placeholder="Profile Picture URL"
+					value={formData.profilePictureURL}
 					onChange={handleChange}
 				/>
 				<div className="flex justify-end">

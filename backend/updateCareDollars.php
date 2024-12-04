@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $servername = "localhost"; // Your MySQL server
 $username = "root";        // Your MySQL username
 $password = "";            // Your MySQL password
-$dbname = "wecare_webapp_db"; // Your database name
+$dbname = "WeCare"; // Your database name
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
@@ -32,20 +32,20 @@ if(!is_numeric($data['amount'])){
     echo json_encode("it is numeric");
 }
 
-// if (isset($data['amount']) && is_numeric($data['amount']) && $data['amount'] > 0) {
-//     $amount = $conn->real_escape_string($data['amount']); // Sanitize input to prevent SQL injection
+if (isset($data['amount']) && is_numeric($data['amount']) && $data['amount'] > 0) {
+    $amount = $conn->real_escape_string($data['amount']); // Sanitize input to prevent SQL injection
 
-//     $caregiverID = 1; // You should get the caregiver ID from the front-end or session
-//     $sql = "UPDATE members SET careDollars = careDollars + $amount WHERE id = $caregiverID";
+    $caregiverID = 1; // You should get the caregiver ID from the front-end or session
+    $sql = "UPDATE members SET careDollars = careDollars + $amount WHERE id = $caregiverID";
 
-//     if ($conn->query($sql) === TRUE) {
-//         echo json_encode(["message" => "Care dollars successfully updated.", "amount" => $amount]);
-//     } else {
-//         echo json_encode(["error" => "Error updating care dollars: " . $conn->error]);
-//     }
-// } else {
-//     echo json_encode(["error" => "Invalid input. Please provide a valid amount of care dollars."]);
-// }
+    if ($conn->query($sql) === TRUE) {
+        echo json_encode(["message" => "Care dollars successfully updated.", "amount" => $amount]);
+    } else {
+        echo json_encode(["error" => "Error updating care dollars: " . $conn->error]);
+    }
+} else {
+    echo json_encode(["error" => "Invalid input. Please provide a valid amount of care dollars."]);
+}
 
 $conn->close();
 ?>
