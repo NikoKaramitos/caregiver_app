@@ -56,8 +56,8 @@ $parent = mysqli_fetch_assoc($parentResult);
 $recipientParentID = $parent['parentID'];
 
 // Insert into the contracts table
-$sql = "INSERT INTO contracts (caregiverID, recipientParentID, startDate, endDate, weeklyHours) 
-        VALUES ($caregiverID, $recipientParentID, '$startDate', '$endDate', $weeklyHours)";
+$sql = "INSERT INTO contracts (caregiverID, recipientID, recipientParentID, startDate, endDate, weeklyHours) 
+        VALUES ($caregiverID, $memberID, $recipientParentID, '$startDate', '$endDate', $weeklyHours)";
 
 // Execute the query
 if (mysqli_query($conn, $sql)) {
