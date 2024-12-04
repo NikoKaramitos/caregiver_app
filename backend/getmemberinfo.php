@@ -1,25 +1,36 @@
 <?php
+$host = '127.0.0.1';
+$user = 'root';
+$password = '';
+$database = 'wecare_webapp_db';
+
+$conn = mysqli_connect($host, $user, $password, $database);
+
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-header('Access-Control-Allow-Origin: http://localhost:3000');
-header('Access-Control-Allow-Methods: GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+// header('Access-Control-Allow-Origin: http://localhost:3000');
+// header('Access-Control-Allow-Methods: GET, OPTIONS');
+// header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json");
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit();
 }
 
+
 header('Content-Type: application/json');
 
-include 'db.php'; // Ensure the path is correct and the file is accessible
-
 $memberID = isset($_GET['memberID']) ? intval($_GET['memberID']) : null;
-$email = isset($_GET['email']) ? $_GET['email'] : null;
 
-if (!$memberID && !$email) {
-    echo json_encode(["message" => "You must provide either memberID or email"]);
+if (!$memberID ) {
+    echo json_encode(["message" => "You must provide either memberID"]);
     exit();
 }
 
@@ -51,8 +62,9 @@ if ($result->num_rows > 0) {
         "phone" => $member['phone'],
         "address" => $member['address'],
         "timeAvailable" => $member['timeAvailable'],
-        "email" => $member['email'],
         "lastTenRatings" => $member['lastTenRatings'],
+        "careDollars"=> $member['careDollars']
+        "email" => $member['email'],
         "averageRating" => $averageRating
     ]);
 } else {
