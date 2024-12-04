@@ -25,10 +25,10 @@ if (!$memberID && !$email) {
 
 // Prepare the SQL query safely to prevent SQL injection
 if ($memberID) {
-    $stmt = $conn->prepare("SELECT username, name, email, phone, address, timeAvailable, lastTenRatings FROM members WHERE memberID = ?");
+    $stmt = $conn->prepare("SELECT username, name, email, phone, address, timeAvailable, lastTenRatings, totalStars, ratingCount FROM members WHERE memberID = ?");
     $stmt->bind_param("i", $memberID);
 } else {
-    $stmt = $conn->prepare("SELECT username, name, email, phone, address, timeAvailable, lastTenRatings FROM members WHERE email = ?");
+    $stmt = $conn->prepare("SELECT username, name, email, phone, address, timeAvailable, lastTenRatings, totalStars, ratingCount FROM members WHERE email = ?");
     $stmt->bind_param("s", $email);
 }
 
@@ -37,15 +37,23 @@ $result = $stmt->get_result();
 
 if ($result->num_rows > 0) {
     $member = $result->fetch_assoc();
+
+    // Calculate the average rating as an integer (rounded)
+    $averageRating = ($member['ratingCount'] > 0) 
+        ? round($member['totalStars'] / $member['ratingCount']) 
+        : 0;
+
     echo json_encode([
         "message" => "Member found",
         "memberID" => $memberID ? $memberID : null,
+        "username" => $member['username'],
         "name" => $member['name'],
         "phone" => $member['phone'],
         "address" => $member['address'],
         "timeAvailable" => $member['timeAvailable'],
         "email" => $member['email'],
-        "lastTenRatings" => $member['lastTenRatings']
+        "lastTenRatings" => $member['lastTenRatings'],
+        "averageRating" => $averageRating
     ]);
 } else {
     echo json_encode(["message" => "No member found with the given memberID or email"]);
