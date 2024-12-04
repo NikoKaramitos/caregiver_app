@@ -36,7 +36,6 @@ const Sidebar = () => {
   };
   const handleRatingSubmit = () => {
     alert(`You rated this caregiver ${selectedRating} stars.`);
-
     fetch("http://localhost/ratingg.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -53,28 +52,59 @@ const Sidebar = () => {
     setShowRateModal(false);
   };
 
-  // stuff
-  const handleContact = (caregiverName) => {
-    alert(`You have contacted ${caregiverName}. He will contact you soon.`);
-  };
-  useEffect(() => {
-    fetch("http://localhost/getCareGivers.php")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Fetched caregivers:", data);
-        setCaregivers(data);
-        setFilteredCaregivers(data);
-        if (data.length > 0) setSelectedCaregiver(data[0]); // Select the first caregiver by default
-      })
-      .catch((error) => {
-        console.error("Error fetching caregivers:", error);
-      });
-  }, []);
+	const handleContact = async (caregiver) => {
+		// Retrieve recipientID from localStorage
+		const userData = JSON.parse(localStorage.getItem("userData"));
+		const recipientID = userData ? userData.id : null;
+
+		if (!recipientID) {
+			alert("You must be logged in to contact a caregiver.");
+			return;
+		}
+
+		const caregiverID = caregiver.memberID; // Assuming caregiver's memberID is available
+		const message = 1;
+
+		try {
+			const response = await fetch(
+				"http://localhost:8000/createcontract.php",
+				{
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ caregiverID, recipientID, message }),
+				}
+			);
+			const data = await response.json();
+
+			if (response.ok) {
+				alert("Contract created successfully.");
+			} else {
+				alert("Error creating contract: " + data.message);
+			}
+		} catch (error) {
+			console.error("Error creating contract:", error);
+			alert("An error occurred while creating the contract.");
+		}
+	};
+
+	useEffect(() => {
+		fetch("http://localhost:8000/getCareGivers.php")
+			.then((response) => {
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+				return response.json();
+			})
+			.then((data) => {
+				console.log("Fetched caregivers:", data);
+				setCaregivers(data);
+				setFilteredCaregivers(data);
+				if (data.length > 0) setSelectedCaregiver(data[0]); // Select the first caregiver by default
+			})
+			.catch((error) => {
+				console.error("Error fetching caregivers:", error);
+			});
+	}, []);
 
   const handleSelectCaregiver = (caregiver) => {
     setSelectedCaregiver(caregiver);
@@ -108,6 +138,23 @@ const Sidebar = () => {
     const fullStars = Math.floor(rating);
     return "★".repeat(fullStars) + "☆".repeat(5 - fullStars);
   };
+
+  const renderStars2 = (rating, isInteractive) => {
+    return Array(5)
+      .fill(null)
+      .map((_, index) => (
+        <span
+          key={index}
+          onClick={isInteractive ? () => setSelectedRating(index + 1) : null}
+          style={{
+            fontSize: "24px",
+            cursor: isInteractive ? "pointer" : "default",
+            color: index < rating ? "#FFD700" : "#ccc",
+          }}
+        >
+          ★
+        </span>
+      ));
 
   if (caregivers.length === 0) {
     return <div>Loading...</div>;

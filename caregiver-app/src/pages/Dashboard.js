@@ -3,11 +3,12 @@ import React from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import Profile from "../components/ProfileCard";
+import Navbar from "../components/navbar";
 
 function Dashboard() {
   return (
     <div>
-      <Header />
+      <Navbar />
       <div style={styles.container}>
         <Sidebar />
         {/* <Profile /> */}
