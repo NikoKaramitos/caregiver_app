@@ -1,4 +1,14 @@
 <?php
+header('Access-Control-Allow-Origin: http://localhost:3000');
+header('Access-Control-Allow-Methods: GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+
+// Handle preflight OPTIONS request
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit();
+}
+
 header('Content-Type: application/json'); // Set response type to JSON
 
 // Include your database connection
@@ -14,18 +24,31 @@ if ($memberID <= 0) {
 }
 
 try {
-    // Query to fetch all contracts where the recipientID matches the memberID
+    // Query to fetch contracts and related details
     $query = "
-        SELECT contractID, caregiverID, recipientID, recipientParentID, startDate, endDate, weeklyHrs
-        FROM contracts
-        WHERE recipientID = $memberID
+        SELECT 
+            c.contractID,
+            c.weeklyHrs,
+            m.name AS caregiverName,
+            m.phone AS caregiverPhone,
+            p.name AS parentName,
+            p.address AS parentAddress,
+            c.approval AS approval
+        FROM 
+            contracts c
+        INNER JOIN 
+            members m ON c.caregiverID = m.memberID
+        INNER JOIN 
+            parent p ON c.recipientParentID = p.parentID
+        WHERE 
+            c.recipientID = $memberID
     ";
 
     $result = mysqli_query($conn, $query);
 
     // Check if any contracts are found
     if (mysqli_num_rows($result) == 0) {
-        echo json_encode(["message" => "No contracts found for the given memberID"]);
+        echo json_encode(["message" => "No contracts found for the given recipientID"]);
         exit();
     }
 

@@ -1,61 +1,81 @@
 <?php
-header('Content-Type: application/json'); // Set response type to JSON
+header('Access-Control-Allow-Origin: http://localhost:3000');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
-// Include your database connection
-include 'db.php'; // Ensure db.php contains the database connection
+// Handle preflight OPTIONS request
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit();
+}
 
-// Get the contractID from the GET data
-$contractID = intval($_GET['contractID']); // Get the contractID from the URL parameter
+header('Content-Type: application/json');
 
-// Validate that the contractID is valid
+include 'db.php';
+
+$input = file_get_contents("php://input");
+$data = json_decode($input, true);
+
+if (is_null($data) || !isset($data['contractID'])) {
+    http_response_code(400);
+    echo json_encode(["message" => "No input data received or invalid JSON"]);
+    exit();
+}
+
+$contractID = intval($data['contractID']);
+
 if ($contractID <= 0) {
+    http_response_code(400);
     echo json_encode(["message" => "Invalid contractID"]);
     exit();
 }
 
-// Start a transaction to ensure data consistency
 mysqli_begin_transaction($conn);
 
 try {
-    // Fetch caregiverID, recipientParentID, weeklyHrs, startDate, and endDate from the contracts table
-    $contractQuery = "SELECT caregiverID, recipientParentID, weeklyHrs, startDate, endDate FROM contracts WHERE contractID = $contractID";
+    // Fetch contract details
+    $contractQuery = "SELECT caregiverID, recipientParentID, weeklyHours, startDate, endDate, approval FROM contracts WHERE contractID = $contractID FOR UPDATE";
     $contractResult = mysqli_query($conn, $contractQuery);
-    
-    if (mysqli_num_rows($contractResult) == 0) {
-        echo json_encode(["message" => "No contract found with the given contractID"]);
-        exit();
+
+    if (!$contractResult || mysqli_num_rows($contractResult) == 0) {
+        throw new Exception("No contract found with the given contractID");
     }
-    
+
     $contract = mysqli_fetch_assoc($contractResult);
+
+    if ($contract['approval']) {
+        throw new Exception("Contract is already approved");
+    }
+
     $caregiverID = $contract['caregiverID'];
     $recipientParentID = $contract['recipientParentID'];
-    $weeklyHrs = $contract['weeklyHrs'];
-    $startDate = $contract['startDate']; // Days since epoch
-    $endDate = $contract['endDate'];     // Days since epoch
+    $weeklyHours = $contract['weeklyHours'];
+    $startDate = $contract['startDate'];
+    $endDate = $contract['endDate'];
 
-    // Calculate the number of weeks the contract lasts
-    $weeks = ceil(($endDate - $startDate) / 7);
-
-    // Fetch memberID of the recipient from the parent table
+    // Fetch recipientID from parent table
     $parentQuery = "SELECT memberID FROM parent WHERE parentID = $recipientParentID";
     $parentResult = mysqli_query($conn, $parentQuery);
-    if (mysqli_num_rows($parentResult) == 0) {
-        echo json_encode(["message" => "No recipient found with the given recipientParentID"]);
-        exit();
+
+    if (!$parentResult || mysqli_num_rows($parentResult) == 0) {
+        throw new Exception("No parent found with the given recipientParentID");
     }
-    
+
     $parent = mysqli_fetch_assoc($parentResult);
-    $recipientMemberID = $parent['memberID'];
+    $recipientID = $parent['memberID'];
 
-    // Fetch timeAvailable and careDollars for both caregiver and recipient
-    $membersQuery = "SELECT memberID, timeAvailable, careDollars FROM members WHERE memberID IN ($caregiverID, $recipientMemberID)";
+    // Calculate total hours
+    $totalWeeks = ceil(($endDate - $startDate) / 7);
+    $totalHours = $weeklyHours * $totalWeeks;
+
+    // Fetch caregiver and recipient data
+    $membersQuery = "SELECT memberID, timeAvailable, careDollars FROM members WHERE memberID IN ($caregiverID, $recipientID) FOR UPDATE";
     $membersResult = mysqli_query($conn, $membersQuery);
-    if (mysqli_num_rows($membersResult) < 2) {
-        echo json_encode(["message" => "One or both members not found in the members table"]);
-        exit();
+
+    if (!$membersResult || mysqli_num_rows($membersResult) < 2) {
+        throw new Exception("One or both members not found in the members table");
     }
 
-    // Assign caregiver and recipient data
     while ($member = mysqli_fetch_assoc($membersResult)) {
         if ($member['memberID'] == $caregiverID) {
             $caregiver = $member;
@@ -64,52 +84,42 @@ try {
         }
     }
 
-    $caregiverTimeAvailable = $caregiver['timeAvailable'];
-    $caregiverCareDollars = $caregiver['careDollars'];
-    $recipientCareDollars = $recipient['careDollars'];
-
-    // Calculate the careDollars spent
-    $careDollarsSpent = $weeks * $weeklyHrs * 30;
-
-    if ($recipientCareDollars < $careDollarsSpent) {
-        echo json_encode(["message" => "Not enough careDollars for the recipient"]);
-        exit();
+    // Calculate careDollars
+    $careDollarsSpent = $totalHours * 30;
+    if ($recipient['careDollars'] < $careDollarsSpent) {
+        throw new Exception("Recipient does not have enough careDollars");
     }
 
-    // Update caregiver's timeAvailable and careDollars of caregiver and recipient
-    $newCaregiverTimeAvailable = $caregiverTimeAvailable - $weeklyHrs;
-    $newRecipientCareDollars = $recipientCareDollars - $careDollarsSpent;
-    $newCaregiverCareDollars = $caregiverCareDollars + $careDollarsSpent;
+    // Update timeAvailable and careDollars
+    $newCaregiverTimeAvailable = $caregiver['timeAvailable'] - $weeklyHours;
+    $newCaregiverCareDollars = $caregiver['careDollars'] + $careDollarsSpent;
+    $newRecipientCareDollars = $recipient['careDollars'] - $careDollarsSpent;
 
     if ($newCaregiverTimeAvailable < 0) {
-        echo json_encode(["message" => "Not enough time available for the caregiver"]);
-        exit();
+        throw new Exception("Caregiver does not have enough time available");
     }
 
-    // Update records in the members table
     $updateCaregiverQuery = "UPDATE members SET timeAvailable = $newCaregiverTimeAvailable, careDollars = $newCaregiverCareDollars WHERE memberID = $caregiverID";
-    $updateRecipientQuery = "UPDATE members SET careDollars = $newRecipientCareDollars WHERE memberID = $recipientMemberID";
+    $updateRecipientQuery = "UPDATE members SET careDollars = $newRecipientCareDollars WHERE memberID = $recipientID";
 
     if (!mysqli_query($conn, $updateCaregiverQuery) || !mysqli_query($conn, $updateRecipientQuery)) {
-        throw new Exception("Error updating members table: " . mysqli_error($conn));
+        throw new Exception("Error updating members: " . mysqli_error($conn));
     }
 
-    // Now update the contract's approval status
-    $updateContractQuery = "UPDATE contracts SET approved = 1 WHERE contractID = $contractID";
+    // Update contract approval
+    $updateContractQuery = "UPDATE contracts SET approval = 1 WHERE contractID = $contractID";
     if (!mysqli_query($conn, $updateContractQuery)) {
-        throw new Exception("Error updating contract status: " . mysqli_error($conn));
+        throw new Exception("Error updating contract: " . mysqli_error($conn));
     }
 
-    // Commit the transaction
     mysqli_commit($conn);
-    echo json_encode(["message" => "Contract approved successfully, and member data updated"]);
+    echo json_encode(["message" => "Contract approved successfully."]);
 
 } catch (Exception $e) {
-    // Rollback the transaction if an error occurs
     mysqli_rollback($conn);
+    http_response_code(400);
     echo json_encode(["message" => "Error: " . $e->getMessage()]);
 }
 
-// Close the database connection
 mysqli_close($conn);
 ?>
