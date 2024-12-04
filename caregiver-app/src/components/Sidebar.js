@@ -11,9 +11,41 @@ const Sidebar = () => {
 	const [filters, setFilters] = useState({ rate: "", rating: "", city: "" });
 	const [selectedCaregiver, setSelectedCaregiver] = useState(null);
 
-	const handleContact = (caregiverName) => {
-		alert(`You have contacted ${caregiverName}. He will contact you soon.`);
+	const handleContact = async (caregiver) => {
+		// Retrieve recipientID from localStorage
+		const userData = JSON.parse(localStorage.getItem("userData"));
+		const recipientID = userData ? userData.id : null;
+
+		if (!recipientID) {
+			alert("You must be logged in to contact a caregiver.");
+			return;
+		}
+
+		const caregiverID = caregiver.memberID; // Assuming caregiver's memberID is available
+		const message = 1;
+
+		try {
+			const response = await fetch(
+				"http://localhost:8000/createcontract.php",
+				{
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ caregiverID, recipientID, message }),
+				}
+			);
+			const data = await response.json();
+
+			if (response.ok) {
+				alert("Contract created successfully.");
+			} else {
+				alert("Error creating contract: " + data.message);
+			}
+		} catch (error) {
+			console.error("Error creating contract:", error);
+			alert("An error occurred while creating the contract.");
+		}
 	};
+
 	useEffect(() => {
 		fetch("http://localhost:8000/getCareGivers.php")
 			.then((response) => {
@@ -119,7 +151,8 @@ const Sidebar = () => {
 							style={{
 								...styles.caregiverItem,
 								...(selectedCaregiver &&
-								selectedCaregiver.name === caregiver.name
+								selectedCaregiver.memberID ===
+									caregiver.memberID
 									? styles.caregiverItemSelected
 									: {}),
 							}}
@@ -180,9 +213,7 @@ const Sidebar = () => {
 							onMouseOut={(e) =>
 								(e.target.style.backgroundColor = "#4CAF50")
 							}
-							onClick={() =>
-								handleContact(selectedCaregiver.name)
-							}
+							onClick={() => handleContact(selectedCaregiver)}
 						>
 							Contact
 						</button>
@@ -192,7 +223,6 @@ const Sidebar = () => {
 		</div>
 	);
 };
-
 const styles = {
 	container: {
 		display: "flex",

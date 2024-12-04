@@ -90,4 +90,13 @@ $sql = "INSERT INTO contracts (caregiverID, recipientID, recipientParentID, star
 
 // Execute the query
 if (mysqli_query($conn, $sql)) {
-    // Get the auto-increment
+    // Get the auto-incremented contractID
+    $contractID = mysqli_insert_id($conn);
+    echo json_encode(["message" => "Contract created successfully", "contractID" => $contractID]);
+} else {
+    echo json_encode(["message" => "Error creating contract: " . mysqli_error($conn)]);
+}
+
+// Close the database connection
+mysqli_close($conn);
+?>
